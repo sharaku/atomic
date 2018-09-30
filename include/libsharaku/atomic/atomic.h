@@ -22,17 +22,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 **/
 
-#ifndef _VC_SPINLOCK_H_
-#define _VC_SPINLOCK_H_
+#ifndef _ATOMIC_H_
+#define _ATOMIC_H_
 
 #ifdef __cplusplus
 	#ifndef CPP_SRC
 		#define CPP_SRC(x) x
-	#endif
-	#if __cplusplus >= 201103L	// >= C++11
-	
-	#else				// < C++11
-
 	#endif
 #else
 	#ifndef CPP_SRC
@@ -40,54 +35,18 @@ SOFTWARE.
 	#endif
 #endif
 
-#include <intrin.h>
 CPP_SRC(extern "C" {)
 
-// gccにおけるspinlock
-typedef struct ___spinlock {
-	long	lock;
-} spinlock_t;
+#ifdef __GNUC__
+#include <libsharaku/atomic/arch/gcc/atomic.h>
 
-static inline void
-init_spinlock(struct ___spinlock *sl)
-{
-	sl->lock = 0;
-}
+#elif _WIN32
+#include <libsharaku/atomic/arch/vc/atomic.h>
 
-static inline int
-spin_try_lock(struct ___spinlock *sl)
-{
-	// lock変数が0の場合に1へ変更する。
-	int32_t ret = _InterlockedExchange(&sl->lock, 1);
-	if (ret) {
-		// ロック失敗
-		return 1;
-	} else {
-		// ロック成功
-		return 0;
-	}
-}
-
-static inline void
-spin_lock(struct ___spinlock *sl)
-{
-	int32_t ret;
-
-retry:
-	ret = spin_try_lock(sl);
-	if (ret) {
-		goto retry;
-	}
-}
-
-static inline void
-spin_unlock(struct ___spinlock *sl)
-{
-	_InterlockedExchange(&sl->lock, 0);
-}
-
-#define SPINLOCK_INIT { 0 }
+#else
+#error "It is an incompatible build environment."
+#endif
 
 CPP_SRC(})
 
-#endif // _SPINLOCK_H_
+#endif // _ATOMIC_H_

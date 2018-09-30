@@ -24,9 +24,38 @@
  *
  */
 
-#include <bitops.h>
+#include <libsharaku/atomic/atomic.h>
 #include <gtest/gtest.h>
 
-TEST(pid, for_each) {
+TEST(atomic, atomic32) {
+	atomic32_t	a32 = ATOMIC32_INIT(0);
+	EXPECT_EQ(atomic32_return(&a32), 0);
+
+	init_atomic32(1, &a32);
+	EXPECT_EQ(atomic32_return(&a32), 1);
+
+	atomic32_add(2, &a32);
+	EXPECT_EQ(atomic32_return(&a32), 3);
+
+	atomic32_sub(3, &a32);
+	EXPECT_EQ(atomic32_return(&a32), 0);
+
+	EXPECT_EQ(atomic32_add_return(4, &a32), 4);
+	EXPECT_EQ(atomic32_sub_return(5, &a32), -1);
+
+	EXPECT_EQ(atomic32_fetch_add(6, &a32), -1);
+	EXPECT_EQ(atomic32_fetch_sub(7, &a32), 5);
+
+	// クリア
+	init_atomic32(0, &a32);
+	EXPECT_EQ(atomic32_return(&a32), 0);
+
+	atomic32_inc(&a32);
+	EXPECT_EQ(atomic32_return(&a32), 1);
+
+	atomic32_dec(&a32);
+	EXPECT_EQ(atomic32_return(&a32), 0);
+
 	EXPECT_EQ(1, 1);
 }
+
